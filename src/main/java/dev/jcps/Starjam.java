@@ -1,14 +1,10 @@
-package org.jcps;
+package dev.jcps;
 
 import javax.imageio.ImageIO;
-import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.*;
 import java.awt.*;
 import java.io.File;
-import java.io.IOException;
 import java.net.URL;
 
 /**
@@ -16,7 +12,7 @@ import java.net.URL;
  * <p>
  * STAR JAM 1.0, 1996-11-11, Steve A. Baker
  */
-public class Starjam extends Panel implements Runnable {
+public class Starjam extends Panel implements Runnable, JavaAppletAdapter {
     protected static int allImages;
     protected static int i;
     protected static int imgFlag;
@@ -112,7 +108,6 @@ public class Starjam extends Panel implements Runnable {
         Starjam.mixer = 1;
         Starjam.tunes = 1;
         Starjam.lead = 1;
-        //Starjam.fSpeed = 2;
         Starjam.jam1 = null;
         Starjam.lead1 = null;
         Starjam.n1 = null;
@@ -159,8 +154,10 @@ public class Starjam extends Panel implements Runnable {
     public Image getImage(String o, String fileName) {
         Image bi = null;
         if (o.lastIndexOf("/") != o.length() - 1) {
-            //|| o.lastIndexOf("/") != o.length() - 1) {
             o = o + "/";
+        }
+        if (o.lastIndexOf(File.separator) != o.length() - 1) {
+            o = o + File.separator;
         }
         try {
             File file = new File(o + fileName);
@@ -168,16 +165,26 @@ public class Starjam extends Panel implements Runnable {
 
         } catch (Exception e) {
             boolean check = false;
+            URL iconPath;
             try {
-                URL iconPath = this.getClass().getResource("/");
+                iconPath = this.getClass().getResource("/");
                 assert iconPath != null;
                 bi = ImageIO.read(new File((iconPath.getFile() + fileName).substring(1)));
             } catch (Exception ex) {
-                check = true;
-                System.out.println("getImage error2: " + fileName + "\n" + ex.getMessage());
+                String msg = null;
+                try {
+                    iconPath = this.getClass().getResource("/" + fileName);
+                    assert iconPath != null;
+                    bi = ImageIO.read(iconPath);
+                } catch (Exception eb) {
+                    check = true;
+                    msg += eb.getMessage();
+                }
+                msg += " | " + ex.getMessage();
+                System.out.println("getImage error2: " + msg);
             }
             if (check) {
-                System.out.println("getImage error1: " + fileName + "\n" + e.getMessage());
+                System.out.println("getImage error1: " + e.getMessage());
             }
         }
         return bi;
@@ -185,7 +192,7 @@ public class Starjam extends Panel implements Runnable {
 
     public void init() {
         fSpeed = 2;
-        progress = new Timer(1000, e -> imgFlag = 1);
+        progress = new Timer(1500, e -> imgFlag = 1);
         this.setForeground(Color.white);
         this.setBackground(Color.darkGray);
         Starjam.oldNextCount = 4;
@@ -202,18 +209,20 @@ public class Starjam extends Panel implements Runnable {
         Starjam.oldNext = -1;
         Starjam.jam1 = this.getAudioClip(this.getDocumentBase(), "jam4.wav");
         if (Starjam.tunes == 1) {
-            Starjam.jam1.loop(Clip.LOOP_CONTINUOUSLY);
+            if (!Starjam.jam1.isActive()) {
+                Starjam.jam1.loop(Clip.LOOP_CONTINUOUSLY);
+            }
         }
-        Starjam.ball = this.getImage(this.getDocumentBase(), "1ball.png");
-        Starjam.c1 = this.getImage(this.getDocumentBase(), "1bc1.gif");
-        Starjam.c2 = this.getImage(this.getDocumentBase(), "1bc2.gif");
-        Starjam.c3 = this.getImage(this.getDocumentBase(), "1bc3.gif");
-        Starjam.c4 = this.getImage(this.getDocumentBase(), "1bc4.gif");
-        Starjam.rt = this.getImage(this.getDocumentBase(), "1brt.gif");
-        Starjam.lf = this.getImage(this.getDocumentBase(), "1blf.gif");
-        Starjam.sq = this.getImage(this.getDocumentBase(), "1bsq.gif");
-        Starjam.goal = this.getImage(this.getDocumentBase(), "1bgl.gif");
-        Starjam.gameOver = this.getImage(this.getDocumentBase(), "1star.gif");
+        Starjam.ball = this.getImage(this.getCodeBase().toString(), "1ball.png");
+        Starjam.c1 = this.getImage(this.getCodeBase().toString(), "1bc1.gif");
+        Starjam.c2 = this.getImage(this.getCodeBase().toString(), "1bc2.gif");
+        Starjam.c3 = this.getImage(this.getCodeBase().toString(), "1bc3.gif");
+        Starjam.c4 = this.getImage(this.getCodeBase().toString(), "1bc4.gif");
+        Starjam.rt = this.getImage(this.getCodeBase().toString(), "1brt.gif");
+        Starjam.lf = this.getImage(this.getCodeBase().toString(), "1blf.gif");
+        Starjam.sq = this.getImage(this.getCodeBase().toString(), "1bsq.gif");
+        Starjam.goal = this.getImage(this.getCodeBase().toString(), "1bgl.gif");
+        Starjam.gameOver = this.getImage(this.getCodeBase().toString(), "1star.gif");
         Starjam.n1 = this.getAudioClip(this.getDocumentBase(), "note1.wav");
         Starjam.n2 = this.getAudioClip(this.getDocumentBase(), "note2.wav");
         Starjam.n3 = this.getAudioClip(this.getDocumentBase(), "note3.wav");
@@ -287,41 +296,6 @@ public class Starjam extends Panel implements Runnable {
         graphics.fillRect(0, 0, 288, 288);
         graphics.dispose();
         Starjam.monolith = 0;
-    }
-
-    private Clip getAudioClip(String documentBase, String s) {
-        Clip clip = null;
-        if (documentBase.lastIndexOf("\\") != documentBase.length() - 1 ||
-                documentBase.lastIndexOf("/") != documentBase.length() - 1) {
-            documentBase = documentBase + File.separator;
-        }
-        try {
-            clip = AudioSystem.getClip();
-            String fullPath = documentBase + s;
-            clip.open(AudioSystem.getAudioInputStream(new File(fullPath)));
-
-        } catch (UnsupportedAudioFileException | LineUnavailableException ex) {
-            System.out.println("ERROR: " + ex.getMessage());
-        } catch (IOException e) {
-            try {
-                clip = AudioSystem.getClip();
-                clip.open(AudioSystem.getAudioInputStream(new URL(this.getClass().getResource("/") + s)));
-            } catch (LineUnavailableException | UnsupportedAudioFileException | IOException ex) {
-                System.out.println("getAudioClip error: " + s + "\n" + ex.getMessage());
-            }
-        }
-        return clip;
-    }
-
-    private String getDocumentBase() {
-        String s = "";
-        try {
-            // get working directory
-            s = System.getProperty("user.dir");
-        } catch (final SecurityException e) {
-            System.out.println("Security exception: " + e.getMessage());
-        }
-        return s;
     }
 
     public boolean imageUpdate(Image img, int infoFlags, int x, int y, int w, int h) {
@@ -950,13 +924,13 @@ public class Starjam extends Panel implements Runnable {
         Starjam.dy = Starjam.pt;
     }
 
-    private void calculateAnimationTime(Graphics graphics5) {
+    private void calculateAnimationTime(Graphics graphics) {
         Starjam.red = Starjam.aniClock * 16 % 256;
         if (Starjam.red > 127) {
             Starjam.red = 255 - Starjam.red;
         }
         Starjam.red += 127;
-        graphics5.setColor(new Color(Starjam.red, 0, 0));
+        graphics.setColor(new Color(Starjam.red, 0, 0));
     }
 
     private void setLevelScore() {
@@ -977,8 +951,8 @@ public class Starjam extends Panel implements Runnable {
     }
 
     public void stop() {
-        this.aniThread.stop();
         Starjam.jam1.stop();
+        this.progress.stop();
     }
 
     public void run() {
@@ -991,12 +965,10 @@ public class Starjam extends Panel implements Runnable {
 
     }
 
-
-    public boolean handleEvent(final Event evt) {
-        if (evt.id == 201) {
+    public void processEvent(final AWTEvent evt) {
+        if (evt.getID() == 201) {
             System.exit(0);
         }
-        return super.handleEvent(evt);
     }
 
     public boolean keyDown(final Event event, final int n) {
@@ -1045,6 +1017,7 @@ public class Starjam extends Panel implements Runnable {
                     Starjam.lead = 1;
                     Starjam.tunes = 1;
                     Starjam.n5.start();
+                    Starjam.jam1.stop();
                     Starjam.jam1.loop(Clip.LOOP_CONTINUOUSLY);
                 }
             }
