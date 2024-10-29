@@ -11,7 +11,7 @@ public class StarJamApp extends JFrame implements WindowListener {
 
     public StarJamApp() {
         super("StarJam");
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         setLocationRelativeTo(null); // center the frame on the screen
 
         // set the frame icon to the StarJam icon image
@@ -33,17 +33,17 @@ public class StarJamApp extends JFrame implements WindowListener {
         sja.setVisible(true);
         sja.requestFocus();
         sja.sj.init();
-        timer = new Timer(300 / sja.sj.fSpeed, null);
+        timer = new Timer(300 / sja.sj.getfSpeed(), null);
         timer.addActionListener(e -> {
             sja.sj.run();
-            timer.setDelay(300 / sja.sj.fSpeed);
+            timer.setDelay(300 / sja.sj.getfSpeed());
         });
         timer.start();
     }
 
     @Override
     public void windowOpened(WindowEvent e) {
-
+        // nothing needs to happen.
     }
 
     @Override
@@ -53,26 +53,26 @@ public class StarJamApp extends JFrame implements WindowListener {
 
     @Override
     public void windowClosed(WindowEvent e) {
-
+        // nothing needs to happen.
     }
 
     @Override
     public void windowIconified(WindowEvent e) {
-
+        // nothing needs to happen.
     }
 
     @Override
     public void windowDeiconified(WindowEvent e) {
-
+        // nothing needs to happen.
     }
 
     @Override
     public void windowActivated(WindowEvent e) {
-
+        // nothing needs to happen.
     }
 
     @Override
     public void windowDeactivated(WindowEvent e) {
-
+        // nothing needs to happen.
     }
 }
